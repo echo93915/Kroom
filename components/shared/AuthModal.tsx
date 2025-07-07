@@ -18,6 +18,7 @@ import { FaApple, FaFacebook } from "react-icons/fa";
 import { SiNaver } from "react-icons/si";
 import { Mail } from "lucide-react";
 import GoogleIcon from "./GoogleIcon";
+import { signInWithGoogle } from "@/services/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -67,7 +68,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               text="네이버로 로그인하기"
               color="#03C75A"
             />
-            <SocialButton icon={GoogleIcon} text="구글로 로그인하기" />
+            <SocialButton
+              icon={GoogleIcon}
+              text="구글로 로그인하기"
+              onClick={signInWithGoogle}
+            />
             <SocialButton icon={FaApple} text="애플로 로그인하기" color="#000000" />
             <SocialButton
               icon={Mail}
@@ -90,13 +95,19 @@ const SocialButton = ({
   icon: Icon,
   text,
   color,
+  onClick,
 }: {
   icon: any;
   text: string;
   color?: string;
+  onClick?: () => void;
 }) => {
   return (
-    <Button variant="outline" className="w-full justify-start">
+    <Button
+      variant="outline"
+      className="w-full justify-start"
+      onClick={onClick}
+    >
       <Icon className="mr-4 h-5 w-5" style={{ color }} />
       {text}
     </Button>
