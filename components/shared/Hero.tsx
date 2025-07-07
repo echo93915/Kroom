@@ -6,8 +6,10 @@ import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
+  const router = useRouter();
   const {
     ready,
     value,
@@ -37,6 +39,7 @@ const Hero = () => {
       getGeocode({ address: description }).then((results) => {
         const { lat, lng } = getLatLng(results[0]);
         console.log("📍 Coordinates: ", { lat, lng });
+        router.push(`/search?address=${description}&lat=${lat}&lng=${lng}`);
       });
     };
 
@@ -80,7 +83,7 @@ const Hero = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
           {/* We can use the "status" to decide when to render predictions */}
           {status === "OK" && (
-            <ul className="absolute top-full left-0 right-0 bg-white text-black rounded-b-lg shadow-md">
+            <ul className="absolute top-full left-0 right-0 bg-white text-black rounded-b-lg shadow-md text-left">
               {renderSuggestions()}
             </ul>
           )}

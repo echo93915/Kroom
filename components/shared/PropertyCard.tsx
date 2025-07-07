@@ -1,4 +1,7 @@
-import { Bed, Bath, Car, Square } from "lucide-react";
+import { Bed, Bath, Car, Square, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export type Tag = "NEW" | "SALE" | "RECOMMENDED";
 
 interface PropertyCardProps {
   image: string;
@@ -9,7 +12,14 @@ interface PropertyCardProps {
   beds: number;
   baths: number;
   area: number;
+  tag?: Tag;
 }
+
+const tagStyles: { [key in Tag]: string } = {
+  NEW: "bg-blue-500 text-white",
+  SALE: "bg-red-500 text-white",
+  RECOMMENDED: "bg-green-500 text-white",
+};
 
 const PropertyCard = ({
   image,
@@ -20,10 +30,27 @@ const PropertyCard = ({
   beds,
   baths,
   area,
+  tag,
 }: PropertyCardProps) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <img src={image} alt={title} className="w-full h-48 object-cover" />
+      <div className="relative">
+        <img src={image} alt={title} className="w-full h-48 object-cover" />
+        {tag && (
+          <div
+            className={`absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded ${tagStyles[tag]}`}
+          >
+            {tag}
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 bg-white/80 rounded-full"
+        >
+          <Heart className="h-5 w-5 text-gray-500" />
+        </Button>
+      </div>
       <div className="p-4">
         <h3 className="text-2xl font-bold">{price}</h3>
         <p className="text-lg font-semibold">{title}</p>
