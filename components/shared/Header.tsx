@@ -41,7 +41,6 @@ export function Header() {
           <Button variant="destructive">Advertise</Button>
           {user ? (
             <>
-              <span>{user.email}</span>
               <Button onClick={signOut}>Sign Out</Button>
             </>
           ) : (
