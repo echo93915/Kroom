@@ -48,21 +48,28 @@ const SearchPage = () => {
   ];
 
   return (
-    <div className="flex">
-      <div className="w-2/3 p-8">
+    <div className="container mx-auto p-8">
+      <div>
         <p className="text-sm text-gray-500">10 appear from 237 Results</p>
         <h1 className="text-3xl font-bold mt-2">
           Search Result '{address}'
         </h1>
         <FilterBar />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-          {properties.map((property, index) => (
-            <PropertyCard key={index} {...property} />
-          ))}
-        </div>
       </div>
-      <div className="w-1/3">
-        {lat && lng && <Map lat={parseFloat(lat)} lng={parseFloat(lng)} />}
+
+      <div className="flex gap-8 mt-8">
+        <div className="w-2/3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {properties.map((property, index) => (
+              <PropertyCard key={index} {...property} />
+            ))}
+          </div>
+        </div>
+        <div className="w-1/3">
+          <div className="sticky top-24">
+            {lat && lng && <Map lat={parseFloat(lat)} lng={parseFloat(lng)} />}
+          </div>
+        </div>
       </div>
     </div>
   );
