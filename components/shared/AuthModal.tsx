@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
+import { FaApple, FaFacebook } from "react-icons/fa";
 import { SiNaver } from "react-icons/si";
 import { Mail } from "lucide-react";
+import GoogleIcon from "./GoogleIcon";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -52,17 +53,32 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             전화나 문자로 전화번호를 확인하겠습니다. 일반 문자 메시지 요금 및 데이터 요금이 부과됩니다. 개인정보 처리방침
           </p>
           <Button className="w-full mt-4 bg-red-500 hover:bg-red-600">계속</Button>
-          <div className="flex items-center my-4">
-            <Separator className="flex-grow" />
-            <span className="mx-4 text-xs text-gray-500">또는</span>
-            <Separator className="flex-grow" />
+          <div className="relative my-4">
+            <Separator />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="bg-white px-4 text-xs text-gray-500">
+                또는
+              </span>
+            </div>
           </div>
           <div className="space-y-2">
-            <SocialButton icon={SiNaver} text="네이버로 로그인하기" />
-            <SocialButton icon={FaGoogle} text="구글로 로그인하기" />
-            <SocialButton icon={FaApple} text="애플로 로그인하기" />
-            <SocialButton icon={Mail} text="이메일로 로그인하기" />
-            <SocialButton icon={FaFacebook} text="페이스북으로 로그인하기" />
+            <SocialButton
+              icon={SiNaver}
+              text="네이버로 로그인하기"
+              color="#03C75A"
+            />
+            <SocialButton icon={GoogleIcon} text="구글로 로그인하기" />
+            <SocialButton icon={FaApple} text="애플로 로그인하기" color="#000000" />
+            <SocialButton
+              icon={Mail}
+              text="이메일로 로그인하기"
+              color="#808080"
+            />
+            <SocialButton
+              icon={FaFacebook}
+              text="페이스북으로 로그인하기"
+              color="#1877F2"
+            />
           </div>
         </div>
       </DialogContent>
@@ -70,10 +86,18 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   );
 };
 
-const SocialButton = ({ icon: Icon, text }: { icon: any; text: string }) => {
+const SocialButton = ({
+  icon: Icon,
+  text,
+  color,
+}: {
+  icon: any;
+  text: string;
+  color?: string;
+}) => {
   return (
     <Button variant="outline" className="w-full justify-start">
-      <Icon className="mr-4 h-5 w-5" />
+      <Icon className="mr-4 h-5 w-5" style={{ color }} />
       {text}
     </Button>
   );
