@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { SignInWithPasswordCredentials } from "@supabase/supabase-js";
 
 export async function signInWithGoogle() {
   const supabase = createClient();
@@ -8,6 +9,26 @@ export async function signInWithGoogle() {
       redirectTo: `${location.origin}/auth/callback`,
     },
   });
+}
+
+export async function signInWithApple() {
+  const supabase = createClient();
+  await supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: {
+      redirectTo: `${location.origin}/auth/callback`,
+    },
+  });
+}
+
+export async function signInWithEmail(credentials: SignInWithPasswordCredentials) {
+  const supabase = createClient();
+  return supabase.auth.signInWithPassword(credentials);
+}
+
+export async function signUpWithEmail(credentials: SignInWithPasswordCredentials) {
+  const supabase = createClient();
+  return supabase.auth.signUp(credentials);
 }
 
 export async function signOut() {

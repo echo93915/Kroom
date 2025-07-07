@@ -38,6 +38,7 @@ export function Header() {
           Kroom
         </Link>
         <div className="flex items-center space-x-4">
+          <Button variant="destructive">Advertise</Button>
           {user ? (
             <>
               <span>{user.email}</span>

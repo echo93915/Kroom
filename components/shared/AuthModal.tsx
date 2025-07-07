@@ -1,87 +1,132 @@
+"use client";
+
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { FaApple, FaFacebook } from "react-icons/fa";
 import { SiNaver } from "react-icons/si";
 import { Mail } from "lucide-react";
 import GoogleIcon from "./GoogleIcon";
-import { signInWithGoogle } from "@/services/auth";
+import {
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  signInWithApple,
+} from "@/services/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleContinue = async () => {
+    setError(null);
+    const { data, error } = await signInWithEmail({ email, password });
+
+    if (error) {
+      if (error.message.includes("Invalid login credentials")) {
+        // If sign-in fails, try to sign up the user
+        const { error: signUpError } = await signUpWithEmail({
+          email,
+          password,
+        });
+
+        if (signUpError) {
+          setError(signUpError.message);
+        } else {
+          // You might want to show a message that a confirmation email has been sent
+          onClose();
+        }
+      } else {
+        setError(error.message);
+      }
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>로그인 또는 회원 가입</DialogTitle>
+          <DialogTitle>Log in or sign up</DialogTitle>
+          <DialogDescription>
+            Enter your email and password to continue.
+          </DialogDescription>
         </DialogHeader>
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Kroom에 오신 것을 환영합니다.</h2>
-          <div className="mt-4 border rounded-lg">
-            <div className="p-4 border-b">
-              <Select defaultValue="us">
-                <SelectTrigger>
-                  <SelectValue placeholder="국가/지역" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="us">미국 (+1)</SelectItem>
-                  <SelectItem value="kr">대한민국 (+82)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="p-4">
-              <Input type="tel" placeholder="전화번호" />
-            </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            전화나 문자로 전화번호를 확인하겠습니다. 일반 문자 메시지 요금 및 데이터 요금이 부과됩니다. 개인정보 처리방침
-          </p>
-          <Button className="w-full mt-4 bg-red-500 hover:bg-red-600">계속</Button>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <Button onClick={handleContinue} className="w-full">
+            Continue
+          </Button>
+
           <div className="relative my-4">
             <Separator />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="bg-white px-4 text-xs text-gray-500">
-                또는
+              <span className="bg-background px-4 text-xs text-muted-foreground">
+                or
               </span>
             </div>
           </div>
+
           <div className="space-y-2">
             <SocialButton
               icon={SiNaver}
-              text="네이버로 로그인하기"
+              text="Continue with Naver"
               color="#03C75A"
             />
             <SocialButton
               icon={GoogleIcon}
-              text="구글로 로그인하기"
+              text="Continue with Google"
               onClick={signInWithGoogle}
             />
-            <SocialButton icon={FaApple} text="애플로 로그인하기" color="#000000" />
+            <SocialButton
+              icon={FaApple}
+              text="Continue with Apple"
+              color="#000000"
+              onClick={signInWithApple}
+            />
             <SocialButton
               icon={Mail}
-              text="이메일로 로그인하기"
+              text="Continue with Email"
               color="#808080"
             />
             <SocialButton
               icon={FaFacebook}
-              text="페이스북으로 로그인하기"
+              text="Continue with Facebook"
               color="#1877F2"
             />
           </div>
@@ -89,7 +134,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       </DialogContent>
     </Dialog>
   );
-};
+}
 
 const SocialButton = ({
   icon: Icon,
@@ -112,6 +157,4 @@ const SocialButton = ({
       {text}
     </Button>
   );
-};
-
-export default AuthModal; 
+}; 
