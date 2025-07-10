@@ -174,9 +174,21 @@ export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [universityInput, setUniversityInput] = useState("");
   const [showUniversityDropdown, setShowUniversityDropdown] = useState(false);
   const [selectedUniversity, setSelectedUniversity] = useState("");
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phone: "",
+    location: "",
+    userType: "",
+    koreanLevel: "",
+    university: "",
+    bio: ""
+  });
 
   const {
     ready,
@@ -218,6 +230,28 @@ export default function ProfilePage() {
       }
       
       setUser(user);
+      
+      // Initialize form with existing user data
+      setFormData({
+        fullName: user.user_metadata?.full_name || "",
+        phone: user.user_metadata?.phone || "",
+        location: user.user_metadata?.location || "",
+        userType: user.user_metadata?.user_type || "",
+        koreanLevel: user.user_metadata?.korean_level || "",
+        university: user.user_metadata?.university || "",
+        bio: user.user_metadata?.bio || ""
+      });
+      
+      // Set university input for the searchable field
+      if (user.user_metadata?.university) {
+        setUniversityInput(user.user_metadata.university);
+      }
+      
+      // Set location input for Google Places
+      if (user.user_metadata?.location) {
+        setLocationValue(user.user_metadata.location, false);
+      }
+      
       setLoading(false);
     };
 
@@ -225,11 +259,14 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleLocationInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocationValue(e.target.value);
+    const value = e.target.value;
+    setLocationValue(value);
+    setFormData(prev => ({ ...prev, location: value }));
   };
 
   const handleLocationSelect = (description: string) => () => {
     setLocationValue(description, false);
+    setFormData(prev => ({ ...prev, location: description }));
     clearSuggestions();
 
     // Optional: Get coordinates for future use
@@ -242,12 +279,14 @@ export default function ProfilePage() {
   const handleUniversityInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setUniversityInput(value);
+    setFormData(prev => ({ ...prev, university: value }));
     setShowUniversityDropdown(value.length > 0);
   };
 
   const handleUniversitySelect = (university: typeof universities[0]) => {
     setUniversityInput(university.name);
     setSelectedUniversity(university.id);
+    setFormData(prev => ({ ...prev, university: university.name }));
     setShowUniversityDropdown(false);
   };
 
@@ -260,6 +299,49 @@ export default function ProfilePage() {
   const handleUniversityInputBlur = () => {
     // Delay hiding to allow for click events
     setTimeout(() => setShowUniversityDropdown(false), 200);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveChanges = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    try {
+      const supabase = createClient();
+      
+      // Update user metadata
+      const { error } = await supabase.auth.updateUser({
+                 data: {
+           full_name: formData.fullName,
+           phone: formData.phone,
+           location: formData.location || locationValue, // Use Google Places value if form data is empty
+           user_type: formData.userType,
+           korean_level: formData.koreanLevel,
+           university: formData.university || universityInput, // Use manual input if no selection made
+           bio: formData.bio
+         }
+      });
+
+      if (error) {
+        console.error("Error updating profile:", error);
+        alert("Failed to save changes. Please try again.");
+      } else {
+        alert("Profile updated successfully!");
+        // Refresh user data
+        const { data: { user: updatedUser } } = await supabase.auth.getUser();
+        if (updatedUser) {
+          setUser(updatedUser);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      alert("An error occurred while saving. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -291,7 +373,7 @@ export default function ProfilePage() {
 
         {/* Profile Form */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <form className="space-y-6">
+          <form onSubmit={handleSaveChanges} className="space-y-6">
             {/* Profile Photo Section */}
             <div className="flex items-center space-x-6">
               <div className="relative">
@@ -326,7 +408,8 @@ export default function ProfilePage() {
                 <Input
                   id="fullName"
                   placeholder="Enter your full name"
-                  defaultValue={user.user_metadata?.full_name || ""}
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange("fullName", e.target.value)}
                 />
               </div>
 
@@ -354,6 +437,8 @@ export default function ProfilePage() {
                   id="phone"
                   type="tel"
                   placeholder="+82 10-0000-0000"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
                 />
               </div>
 
@@ -403,7 +488,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="userType">I am a:</Label>
-                <Select>
+                <Select value={formData.userType} onValueChange={(value) => handleInputChange("userType", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
@@ -420,7 +505,7 @@ export default function ProfilePage() {
                   <MessageSquare className="w-4 h-4" />
                   <span>Korean Language Level</span>
                 </Label>
-                <Select>
+                <Select value={formData.koreanLevel} onValueChange={(value) => handleInputChange("koreanLevel", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your level" />
                   </SelectTrigger>
@@ -483,6 +568,8 @@ export default function ProfilePage() {
                 className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
                 placeholder="Tell others about yourself, your preferences, or what you're looking for..."
                 maxLength={500}
+                value={formData.bio}
+                onChange={(e) => handleInputChange("bio", e.target.value)}
               />
               <p className="text-xs text-gray-500">Maximum 500 characters</p>
             </div>
@@ -527,8 +614,8 @@ export default function ProfilePage() {
 
             {/* Action Buttons */}
             <div className="flex space-x-4">
-              <Button type="submit" className="flex-1">
-                Save Changes
+              <Button type="submit" className="flex-1" disabled={saving}>
+                {saving ? "Saving..." : "Save Changes"}
               </Button>
               <Button type="button" variant="outline" onClick={handleSignOut}>
                 Sign Out
