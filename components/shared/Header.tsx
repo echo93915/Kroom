@@ -8,6 +8,14 @@ import { FaUserCircle } from "react-icons/fa";
 import AuthModal from "./AuthModal";
 import { signOut } from "@/services/auth";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { User as UserIcon, LogOut, Settings } from "lucide-react";
 
 export function Header() {
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
@@ -40,12 +48,44 @@ export function Header() {
         <div className="flex items-center space-x-4">
           <Button variant="destructive">Advertise</Button>
           {user ? (
-            <>
-              <Button onClick={signOut}>Sign Out</Button>
-            </>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2 p-2">
+                  <div className="relative">
+                    <FaUserCircle className="h-8 w-8 text-green-600" />
+                    <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
+                  </div>
+                  <div className="hidden md:flex flex-col items-start">
+                    <span className="text-sm font-medium">
+                      {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate max-w-32">
+                      {user.email}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <FaUserCircle
-              className="h-8 w-8 cursor-pointer"
+              className="h-8 w-8 cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
               onClick={() => setAuthModalOpen(true)}
             />
           )}
