@@ -31,9 +31,11 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignupMode, setIsSignupMode] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -43,7 +45,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         setError(null);
         setEmail("");
         setPassword("");
+        setConfirmPassword("");
         setIsLoading(false);
+        setIsSignupMode(false);
       }, 300);
     }
   }, [isOpen]);
@@ -66,8 +70,33 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsLoading(false);
   };
 
-  const handleSignUp = async () => {
+  const handleSignUpClick = () => {
     setError(null);
+    
+    // Basic validation before showing confirm password
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    // Show signup mode with confirm password field
+    setIsSignupMode(true);
+  };
+
+  const handleSignUpConfirm = async () => {
+    setError(null);
+
+    // Validate password confirmation
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please try again.");
+      return;
+    }
+
     setIsLoading(true);
     
     const { data, error } = await signUpWithEmail({ email, password });
@@ -117,6 +146,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsLoading(false);
   };
 
+  const handleBackToLogin = () => {
+    setIsSignupMode(false);
+    setConfirmPassword("");
+    setError(null);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -137,9 +172,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Log in or sign up</DialogTitle>
+              <DialogTitle>
+                {isSignupMode ? "Confirm your password" : "Log in or sign up"}
+              </DialogTitle>
               <DialogDescription>
-                Enter your email and password to continue.
+                {isSignupMode 
+                  ? "Please confirm your password to complete signup."
+                  : "Enter your email and password to continue."
+                }
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -151,7 +191,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || isSignupMode}
                 />
               </div>
               <div className="space-y-2">
@@ -161,71 +201,113 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || isSignupMode}
                 />
               </div>
+              
+              {isSignupMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Re-enter your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {password && confirmPassword && password !== confirmPassword && (
+                    <p className="text-red-500 text-sm">Passwords do not match</p>
+                  )}
+                </div>
+              )}
+              
               {error && <p className="text-red-500 text-sm">{error}</p>}
               
-              <div className="flex space-x-2">
-                <Button 
-                  onClick={handleSignIn} 
-                  className="flex-1"
-                  disabled={isLoading || !email || !password}
-                >
-                  {isLoading ? "Signing In..." : "Sign In"}
-                </Button>
-                <Button 
-                  onClick={handleSignUp} 
-                  variant="outline"
-                  className="flex-1"
-                  disabled={isLoading || !email || !password}
-                >
-                  {isLoading ? "Signing Up..." : "Sign Up"}
-                </Button>
-              </div>
-
-              <div className="relative my-4">
-                <Separator />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="bg-background px-4 text-xs text-muted-foreground">
-                    or
-                  </span>
+              {!isSignupMode ? (
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleSignIn} 
+                    className="flex-1"
+                    disabled={isLoading || !email || !password}
+                  >
+                    {isLoading ? "Signing In..." : "Sign In"}
+                  </Button>
+                  <Button 
+                    onClick={handleSignUpClick} 
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isLoading || !email || !password}
+                  >
+                    Sign Up
+                  </Button>
                 </div>
-              </div>
+              ) : (
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleBackToLogin} 
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    onClick={handleSignUpConfirm} 
+                    className="flex-1"
+                    disabled={isLoading || !confirmPassword || password !== confirmPassword}
+                  >
+                    {isLoading ? "Creating Account..." : "Create Account"}
+                  </Button>
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <SocialButton
-                  icon={SiNaver}
-                  text="Continue with Naver"
-                  color="#03C75A"
-                  disabled={isLoading}
-                />
-                <SocialButton
-                  icon={GoogleIcon}
-                  text="Continue with Google"
-                  onClick={signInWithGoogle}
-                  disabled={isLoading}
-                />
-                <SocialButton
-                  icon={FaApple}
-                  text="Continue with Apple"
-                  color="#000000"
-                  onClick={signInWithApple}
-                  disabled={isLoading}
-                />
-                <SocialButton
-                  icon={Mail}
-                  text="Continue with Email"
-                  color="#808080"
-                  disabled={isLoading}
-                />
-                <SocialButton
-                  icon={FaFacebook}
-                  text="Continue with Facebook"
-                  color="#1877F2"
-                  disabled={isLoading}
-                />
-              </div>
+              {!isSignupMode && (
+                <>
+                  <div className="relative my-4">
+                    <Separator />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="bg-background px-4 text-xs text-muted-foreground">
+                        or
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <SocialButton
+                      icon={SiNaver}
+                      text="Continue with Naver"
+                      color="#03C75A"
+                      disabled={isLoading}
+                    />
+                    <SocialButton
+                      icon={GoogleIcon}
+                      text="Continue with Google"
+                      onClick={signInWithGoogle}
+                      disabled={isLoading}
+                    />
+                    <SocialButton
+                      icon={FaApple}
+                      text="Continue with Apple"
+                      color="#000000"
+                      onClick={signInWithApple}
+                      disabled={isLoading}
+                    />
+                    <SocialButton
+                      icon={Mail}
+                      text="Continue with Email"
+                      color="#808080"
+                      disabled={isLoading}
+                    />
+                    <SocialButton
+                      icon={FaFacebook}
+                      text="Continue with Facebook"
+                      color="#1877F2"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}
