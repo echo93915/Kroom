@@ -294,12 +294,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       disabled={isLoading}
                     />
                     <SocialButton
-                      icon={Mail}
-                      text="Continue with Email"
-                      color="#808080"
-                      disabled={isLoading}
-                    />
-                    <SocialButton
                       icon={FaFacebook}
                       text="Continue with Facebook"
                       color="#1877F2"
