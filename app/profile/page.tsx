@@ -376,13 +376,7 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   )}
-                  {showUniversityDropdown && universityInput.length > 0 && filteredUniversities.length === 0 && (
-                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow-lg z-10">
-                      <div className="p-3 text-gray-500 text-center">
-                        No universities found matching "{universityInput}"
-                      </div>
-                    </div>
-                  )}
+                  
                 </div>
               </div>
             </div>
