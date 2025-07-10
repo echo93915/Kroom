@@ -20,10 +20,71 @@ import usePlacesAutocomplete, {
   getLatLng,
 } from "use-places-autocomplete";
 
+// University data structure
+const universities = [
+  // Korean Universities
+  { id: "snu", name: "Seoul National University", category: "🇰🇷 Korean Universities" },
+  { id: "yonsei", name: "Yonsei University", category: "🇰🇷 Korean Universities" },
+  { id: "korea", name: "Korea University", category: "🇰🇷 Korean Universities" },
+  { id: "skku", name: "Sungkyunkwan University", category: "🇰🇷 Korean Universities" },
+  { id: "hanyang", name: "Hanyang University", category: "🇰🇷 Korean Universities" },
+  { id: "ewha", name: "Ewha Womans University", category: "🇰🇷 Korean Universities" },
+  { id: "hongik", name: "Hongik University", category: "🇰🇷 Korean Universities" },
+  { id: "kaist", name: "KAIST", category: "🇰🇷 Korean Universities" },
+  
+  // US Universities
+  { id: "harvard", name: "Harvard University", category: "🇺🇸 United States" },
+  { id: "mit", name: "MIT", category: "🇺🇸 United States" },
+  { id: "stanford", name: "Stanford University", category: "🇺🇸 United States" },
+  { id: "ucla", name: "UCLA", category: "🇺🇸 United States" },
+  { id: "usc", name: "USC", category: "🇺🇸 United States" },
+  { id: "nyu", name: "New York University", category: "🇺🇸 United States" },
+  { id: "columbia", name: "Columbia University", category: "🇺🇸 United States" },
+  { id: "berkeley", name: "UC Berkeley", category: "🇺🇸 United States" },
+  { id: "upenn", name: "University of Pennsylvania", category: "🇺🇸 United States" },
+  
+  // UK Universities
+  { id: "oxford", name: "University of Oxford", category: "🇬🇧 United Kingdom" },
+  { id: "cambridge", name: "University of Cambridge", category: "🇬🇧 United Kingdom" },
+  { id: "imperial", name: "Imperial College London", category: "🇬🇧 United Kingdom" },
+  { id: "ucl", name: "University College London", category: "🇬🇧 United Kingdom" },
+  { id: "lse", name: "London School of Economics", category: "🇬🇧 United Kingdom" },
+  { id: "edinburgh", name: "University of Edinburgh", category: "🇬🇧 United Kingdom" },
+  
+  // Canada Universities
+  { id: "uoft", name: "University of Toronto", category: "🇨🇦 Canada" },
+  { id: "ubc", name: "University of British Columbia", category: "🇨🇦 Canada" },
+  { id: "mcgill", name: "McGill University", category: "🇨🇦 Canada" },
+  { id: "waterloo", name: "University of Waterloo", category: "🇨🇦 Canada" },
+  
+  // Australia Universities
+  { id: "melbourne", name: "University of Melbourne", category: "🇦🇺 Australia" },
+  { id: "sydney", name: "University of Sydney", category: "🇦🇺 Australia" },
+  { id: "anu", name: "Australian National University", category: "🇦🇺 Australia" },
+  { id: "unsw", name: "UNSW Sydney", category: "🇦🇺 Australia" },
+  
+  // Germany Universities
+  { id: "tum", name: "Technical University of Munich", category: "🇩🇪 Germany" },
+  { id: "heidelberg", name: "Heidelberg University", category: "🇩🇪 Germany" },
+  { id: "humboldt", name: "Humboldt University Berlin", category: "🇩🇪 Germany" },
+  
+  // Japan Universities
+  { id: "tokyo", name: "University of Tokyo", category: "🇯🇵 Japan" },
+  { id: "kyoto", name: "Kyoto University", category: "🇯🇵 Japan" },
+  { id: "waseda", name: "Waseda University", category: "🇯🇵 Japan" },
+  
+  // Other Options
+  { id: "other", name: "Other University", category: "Other" },
+  { id: "not-student", name: "Not a student", category: "Other" },
+];
+
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [universityInput, setUniversityInput] = useState("");
+  const [showUniversityDropdown, setShowUniversityDropdown] = useState(false);
+  const [selectedUniversity, setSelectedUniversity] = useState("");
 
   const {
     ready,
@@ -38,6 +99,21 @@ export default function ProfilePage() {
     },
     debounce: 300,
   });
+
+  // Filter universities based on input
+  const filteredUniversities = universities.filter(university =>
+    university.name.toLowerCase().includes(universityInput.toLowerCase()) ||
+    university.category.toLowerCase().includes(universityInput.toLowerCase())
+  );
+
+  // Group filtered universities by category
+  const groupedUniversities = filteredUniversities.reduce((acc, university) => {
+    if (!acc[university.category]) {
+      acc[university.category] = [];
+    }
+    acc[university.category].push(university);
+    return acc;
+  }, {} as Record<string, typeof universities>);
 
   useEffect(() => {
     const getUser = async () => {
@@ -69,6 +145,29 @@ export default function ProfilePage() {
       const { lat, lng } = getLatLng(results[0]);
       console.log("Selected location coordinates:", { lat, lng, address: description });
     });
+  };
+
+  const handleUniversityInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUniversityInput(value);
+    setShowUniversityDropdown(value.length > 0);
+  };
+
+  const handleUniversitySelect = (university: typeof universities[0]) => {
+    setUniversityInput(university.name);
+    setSelectedUniversity(university.id);
+    setShowUniversityDropdown(false);
+  };
+
+  const handleUniversityInputFocus = () => {
+    if (universityInput.length > 0) {
+      setShowUniversityDropdown(true);
+    }
+  };
+
+  const handleUniversityInputBlur = () => {
+    // Delay hiding to allow for click events
+    setTimeout(() => setShowUniversityDropdown(false), 200);
   };
 
   const handleSignOut = async () => {
@@ -247,75 +346,44 @@ export default function ProfilePage() {
                   <GraduationCap className="w-4 h-4" />
                   <span>University (Optional)</span>
                 </Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your university" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {/* Korean Universities */}
-                    <SelectItem value="korea-separator" disabled className="font-semibold text-gray-900">🇰🇷 Korean Universities</SelectItem>
-                    <SelectItem value="snu">Seoul National University</SelectItem>
-                    <SelectItem value="yonsei">Yonsei University</SelectItem>
-                    <SelectItem value="korea">Korea University</SelectItem>
-                    <SelectItem value="skku">Sungkyunkwan University</SelectItem>
-                    <SelectItem value="hanyang">Hanyang University</SelectItem>
-                    <SelectItem value="ewha">Ewha Womans University</SelectItem>
-                    <SelectItem value="hongik">Hongik University</SelectItem>
-                    <SelectItem value="kaist">KAIST</SelectItem>
-                    
-                    {/* US Universities */}
-                    <SelectItem value="us-separator" disabled className="font-semibold text-gray-900 mt-4">🇺🇸 United States</SelectItem>
-                    <SelectItem value="harvard">Harvard University</SelectItem>
-                    <SelectItem value="mit">MIT</SelectItem>
-                    <SelectItem value="stanford">Stanford University</SelectItem>
-                    <SelectItem value="ucla">UCLA</SelectItem>
-                    <SelectItem value="usc">USC</SelectItem>
-                    <SelectItem value="nyu">New York University</SelectItem>
-                    <SelectItem value="columbia">Columbia University</SelectItem>
-                    <SelectItem value="berkeley">UC Berkeley</SelectItem>
-                    <SelectItem value="upenn">University of Pennsylvania</SelectItem>
-                    
-                    {/* UK Universities */}
-                    <SelectItem value="uk-separator" disabled className="font-semibold text-gray-900 mt-4">🇬🇧 United Kingdom</SelectItem>
-                    <SelectItem value="oxford">University of Oxford</SelectItem>
-                    <SelectItem value="cambridge">University of Cambridge</SelectItem>
-                    <SelectItem value="imperial">Imperial College London</SelectItem>
-                    <SelectItem value="ucl">University College London</SelectItem>
-                    <SelectItem value="lse">London School of Economics</SelectItem>
-                    <SelectItem value="edinburgh">University of Edinburgh</SelectItem>
-                    
-                    {/* Canada Universities */}
-                    <SelectItem value="canada-separator" disabled className="font-semibold text-gray-900 mt-4">🇨🇦 Canada</SelectItem>
-                    <SelectItem value="uoft">University of Toronto</SelectItem>
-                    <SelectItem value="ubc">University of British Columbia</SelectItem>
-                    <SelectItem value="mcgill">McGill University</SelectItem>
-                    <SelectItem value="waterloo">University of Waterloo</SelectItem>
-                    
-                    {/* Australia Universities */}
-                    <SelectItem value="australia-separator" disabled className="font-semibold text-gray-900 mt-4">🇦🇺 Australia</SelectItem>
-                    <SelectItem value="melbourne">University of Melbourne</SelectItem>
-                    <SelectItem value="sydney">University of Sydney</SelectItem>
-                    <SelectItem value="anu">Australian National University</SelectItem>
-                    <SelectItem value="unsw">UNSW Sydney</SelectItem>
-                    
-                    {/* Germany Universities */}
-                    <SelectItem value="germany-separator" disabled className="font-semibold text-gray-900 mt-4">🇩🇪 Germany</SelectItem>
-                    <SelectItem value="tum">Technical University of Munich</SelectItem>
-                    <SelectItem value="heidelberg">Heidelberg University</SelectItem>
-                    <SelectItem value="humboldt">Humboldt University Berlin</SelectItem>
-                    
-                    {/* Japan Universities */}
-                    <SelectItem value="japan-separator" disabled className="font-semibold text-gray-900 mt-4">🇯🇵 Japan</SelectItem>
-                    <SelectItem value="tokyo">University of Tokyo</SelectItem>
-                    <SelectItem value="kyoto">Kyoto University</SelectItem>
-                    <SelectItem value="waseda">Waseda University</SelectItem>
-                    
-                    {/* Other Options */}
-                    <SelectItem value="other-separator" disabled className="font-semibold text-gray-900 mt-4">Other</SelectItem>
-                    <SelectItem value="other">Other University</SelectItem>
-                    <SelectItem value="not-student">Not a student</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Input
+                    id="university"
+                    value={universityInput}
+                    onChange={handleUniversityInput}
+                    onFocus={handleUniversityInputFocus}
+                    onBlur={handleUniversityInputBlur}
+                    placeholder="Search for your university..."
+                    className="w-full"
+                  />
+                  {showUniversityDropdown && filteredUniversities.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow-lg z-10 max-h-[300px] overflow-y-auto">
+                      {Object.entries(groupedUniversities).map(([category, universityList]) => (
+                        <div key={category}>
+                          <div className="px-3 py-2 text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-100">
+                            {category}
+                          </div>
+                          {universityList.map((university) => (
+                            <div
+                              key={university.id}
+                              onClick={() => handleUniversitySelect(university)}
+                              className="cursor-pointer p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="font-medium text-gray-900">{university.name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {showUniversityDropdown && universityInput.length > 0 && filteredUniversities.length === 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow-lg z-10">
+                      <div className="p-3 text-gray-500 text-center">
+                        No universities found matching "{universityInput}"
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
