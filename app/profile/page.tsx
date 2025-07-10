@@ -184,6 +184,8 @@ export default function ProfilePage() {
     fullName: "",
     phone: "",
     location: "",
+    gender: "",
+    birthYear: "",
     userType: "",
     koreanLevel: "",
     university: "",
@@ -236,6 +238,8 @@ export default function ProfilePage() {
         fullName: user.user_metadata?.full_name || "",
         phone: user.user_metadata?.phone || "",
         location: user.user_metadata?.location || "",
+        gender: user.user_metadata?.gender || "",
+        birthYear: user.user_metadata?.birth_year || "",
         userType: user.user_metadata?.user_type || "",
         koreanLevel: user.user_metadata?.korean_level || "",
         university: user.user_metadata?.university || "",
@@ -318,6 +322,8 @@ export default function ProfilePage() {
            full_name: formData.fullName,
            phone: formData.phone,
            location: formData.location || locationValue, // Use Google Places value if form data is empty
+           gender: formData.gender,
+           birth_year: formData.birthYear,
            user_type: formData.userType,
            korean_level: formData.koreanLevel,
            university: formData.university || universityInput, // Use manual input if no selection made
@@ -479,6 +485,40 @@ export default function ProfilePage() {
                     </ul>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="non-binary">Non-binary</SelectItem>
+                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthYear">Birth Year</Label>
+                <Select value={formData.birthYear} onValueChange={(value) => handleInputChange("birthYear", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your birth year" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {Array.from({ length: 50 }, (_, i) => {
+                      const year = new Date().getFullYear() - 15 - i; // Start from 15 years ago
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
