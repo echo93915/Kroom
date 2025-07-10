@@ -26,7 +26,7 @@ export async function signInWithEmail(credentials: SignInWithPasswordCredentials
   return supabase.auth.signInWithPassword(credentials);
 }
 
-export async function signUpWithEmail(credentials: SignInWithPasswordCredentials) {
+export async function signUpWithEmail(credentials: { email: string; password: string }) {
   const supabase = createClient();
   return supabase.auth.signUp(credentials);
 }
