@@ -14,11 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Mail, Phone, MapPin, GraduationCap, MessageSquare, Camera } from "lucide-react";
+import { User, Mail, Phone, MapPin, GraduationCap, MessageSquare, Camera, Upload, X } from "lucide-react";
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
+import Image from "next/image";
 
 // University data structure
 const universities = [
@@ -179,6 +180,12 @@ export default function ProfilePage() {
   const [showUniversityDropdown, setShowUniversityDropdown] = useState(false);
   const [selectedUniversity, setSelectedUniversity] = useState("");
   
+  // Profile picture states
+  const [profilePicture, setProfilePicture] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  
   // Form state
   const [formData, setFormData] = useState({
     fullName: "",
@@ -246,6 +253,11 @@ export default function ProfilePage() {
         bio: user.user_metadata?.bio || ""
       });
       
+      // Set profile picture if exists
+      if (user.user_metadata?.profile_picture) {
+        setProfilePicture(user.user_metadata.profile_picture);
+      }
+      
       // Set university input for the searchable field
       if (user.user_metadata?.university) {
         setUniversityInput(user.user_metadata.university);
@@ -261,6 +273,147 @@ export default function ProfilePage() {
 
     getUser();
   }, [router]);
+
+  // Profile picture upload functions
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  const validateFile = (file: File): string | null => {
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return 'Please upload a valid image file (JPEG, PNG, or WebP)';
+    }
+    
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      return 'File size must be less than 5MB';
+    }
+    
+    return null;
+  };
+
+  const handleFileUpload = async (file: File) => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const supabase = createClient();
+      
+      // Create unique filename with user ID folder structure
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      // Simulate progress (since Supabase doesn't provide real progress)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
+      // Upload file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('profile-pictures')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(filePath);
+
+      // Update user metadata with profile picture URL
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          profile_picture: publicUrl
+        }
+      });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setProfilePicture(publicUrl);
+      alert('Profile picture uploaded successfully!');
+
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      alert(`Error uploading file: ${error.message}`);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    if (!profilePicture) return;
+
+    try {
+      const supabase = createClient();
+      
+      // Remove from user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          profile_picture: null
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setProfilePicture("");
+      alert('Profile picture removed successfully!');
+
+    } catch (error: any) {
+      console.error('Error removing profile picture:', error);
+      alert(`Error removing profile picture: ${error.message}`);
+    }
+  };
 
   const handleLocationInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -318,17 +471,19 @@ export default function ProfilePage() {
       
       // Update user metadata
       const { error } = await supabase.auth.updateUser({
-                 data: {
-           full_name: formData.fullName,
-           phone: formData.phone,
-           location: formData.location || locationValue, // Use Google Places value if form data is empty
-           gender: formData.gender,
-           birth_year: formData.birthYear,
-           user_type: formData.userType,
-           korean_level: formData.koreanLevel,
-           university: formData.university || universityInput, // Use manual input if no selection made
-           bio: formData.bio
-         }
+        data: {
+          full_name: formData.fullName,
+          phone: formData.phone,
+          location: formData.location || locationValue,
+          gender: formData.gender,
+          birth_year: formData.birthYear,
+          user_type: formData.userType,
+          korean_level: formData.koreanLevel,
+          university: formData.university || universityInput,
+          bio: formData.bio,
+          // Keep existing profile picture if it exists
+          profile_picture: profilePicture || user.user_metadata?.profile_picture
+        }
       });
 
       if (error) {
@@ -380,25 +535,82 @@ export default function ProfilePage() {
         {/* Profile Form */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <form onSubmit={handleSaveChanges} className="space-y-6">
-            {/* Profile Photo Section */}
-            <div className="flex items-center space-x-6">
+            {/* Profile Photo Upload Section */}
+            <div className="flex flex-col items-center space-y-4">
               <div className="relative">
-                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                  <User className="w-12 h-12 text-gray-400" />
+                {/* Profile Picture Display */}
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                  {profilePicture ? (
+                    <Image
+                      src={profilePicture}
+                      alt="Profile Picture"
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-16 h-16 text-gray-400" />
+                  )}
                 </div>
-                <button
-                  type="button"
-                  className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 text-white hover:bg-blue-700 transition-colors"
-                >
-                  <Camera className="w-4 h-4" />
-                </button>
+                
+                {/* Remove button for existing profile picture */}
+                {profilePicture && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveProfilePicture}
+                    className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-white hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
-                <p className="text-sm text-gray-500">Upload a clear photo of yourself</p>
-                <Button variant="outline" className="mt-2">
-                  Change Photo
-                </Button>
+
+              {/* Upload Area */}
+              <div className="w-full max-w-md">
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    dragActive
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={uploading}
+                  />
+                  
+                  {uploading ? (
+                    <div className="space-y-2">
+                      <Upload className="w-8 h-8 text-blue-500 mx-auto animate-pulse" />
+                      <p className="text-sm text-gray-600">Uploading...</p>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500">{uploadProgress}%</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Camera className="w-8 h-8 text-gray-400 mx-auto" />
+                      <p className="text-sm text-gray-600">
+                        Drag and drop your photo here, or{' '}
+                        <span className="text-blue-500 font-medium">browse</span>
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, WebP up to 5MB
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
