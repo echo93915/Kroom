@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+use 'nvm use' before 'npm run dev' to use the correct version.

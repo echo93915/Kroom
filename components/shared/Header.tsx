@@ -46,7 +46,9 @@ export function Header() {
           Kroom
         </Link>
         <div className="flex items-center space-x-4">
-          <Button variant="destructive">Advertise</Button>
+          <Button variant="destructive" asChild>
+            <Link href="/advertise">Advertise</Link>
+          </Button>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
