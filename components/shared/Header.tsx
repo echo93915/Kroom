@@ -49,6 +49,9 @@ export function Header() {
           <Button variant="destructive" asChild>
             <Link href="/advertise">Advertise</Link>
           </Button>
+          <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-50" asChild>
+            <Link href="/recommend">Recommend</Link>
+          </Button>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

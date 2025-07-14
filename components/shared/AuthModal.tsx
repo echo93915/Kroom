@@ -258,48 +258,48 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     disabled={isLoading || !confirmPassword || password !== confirmPassword}
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
-                  </Button>
+              </Button>
                 </div>
               )}
 
               {!isSignupMode && (
                 <>
-                  <div className="relative my-4">
-                    <Separator />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="bg-background px-4 text-xs text-muted-foreground">
-                        or
-                      </span>
-                    </div>
-                  </div>
+              <div className="relative my-4">
+                <Separator />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="bg-background px-4 text-xs text-muted-foreground">
+                    or
+                  </span>
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <SocialButton
-                      icon={SiNaver}
-                      text="Continue with Naver"
-                      color="#03C75A"
+              <div className="space-y-2">
+                <SocialButton
+                  icon={SiNaver}
+                  text="Continue with Naver"
+                  color="#03C75A"
                       disabled={isLoading}
-                    />
-                    <SocialButton
-                      icon={GoogleIcon}
-                      text="Continue with Google"
-                      onClick={signInWithGoogle}
+                />
+                <SocialButton
+                  icon={GoogleIcon}
+                  text="Continue with Google"
+                  onClick={signInWithGoogle}
                       disabled={isLoading}
-                    />
-                    <SocialButton
-                      icon={FaApple}
-                      text="Continue with Apple"
-                      color="#000000"
-                      onClick={signInWithApple}
+                />
+                <SocialButton
+                  icon={FaApple}
+                  text="Continue with Apple"
+                  color="#000000"
+                  onClick={signInWithApple}
                       disabled={isLoading}
-                    />
-                    <SocialButton
-                      icon={FaFacebook}
-                      text="Continue with Facebook"
-                      color="#1877F2"
+                />
+                <SocialButton
+                  icon={FaFacebook}
+                  text="Continue with Facebook"
+                  color="#1877F2"
                       disabled={isLoading}
-                    />
-                  </div>
+                />
+              </div>
                 </>
               )}
             </div>

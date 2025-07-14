@@ -735,7 +735,7 @@ export default function ProfilePage() {
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
             </div>
-          </form>
+      </form>
         </div>
       </div>
     </div>

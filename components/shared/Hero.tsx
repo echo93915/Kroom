@@ -16,6 +16,15 @@ import usePlacesAutocomplete, {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+// Import Google Fonts
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  weight: ['400', '700', '800'],
+  subsets: ['latin'],
+  display: 'swap',
+});
+
 const Hero = () => {
   const router = useRouter();
   const [listingType, setListingType] = useState<string>("all");
@@ -80,15 +89,17 @@ const Hero = () => {
     <div
       className="relative h-[50vh] bg-cover flex items-center justify-center text-white"
       style={{
-        backgroundImage:
-          "url('https://sdmntpreastus.oaiusercontent.com/files/00000000-d9d0-61f9-87af-bf397d37fe0d/raw?se=2025-07-14T01%3A33%3A38Z&sp=r&sv=2024-08-04&sr=b&scid=553012f4-d20a-5291-b2d2-d0631ce43bd0&skoid=b0fd38cc-3d33-418f-920e-4798de4acdd1&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T00%3A16%3A42Z&ske=2025-07-15T00%3A16%3A42Z&sks=b&skv=2024-08-04&sig=GJt488MfKGcjYcuMb8Rpe%2Bet6iVba5q0zRy3z7Vtx3U%3D')",
+        backgroundImage: "url('/banner.png')",
         backgroundPosition: "center 30%",
       }}
     >
-      <div className="absolute inset-0 bg-black/50" />
-      <div className="relative z-10 max-w-2xl mx-auto px-4 md:px-6 flex flex-col justify-center h-full">
-        <h1 className="text-5xl font-bold text-left text-white mb-4">유학생들의 내 집 마련하기</h1>
-        <div className="mt-4 relative">
+
+              <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 flex flex-col justify-center h-full pt-16">
+                  <h1 className={`text-5xl font-bold text-left text-white mb-4 ${inter.className} leading-tight`}>
+            <div>Study Abroad</div>
+            <div>Housing <span className="text-blue-400">Kroom</span></div>
+          </h1>
+          <div className="mt-2 relative w-[600px]">
           <div className="flex items-stretch h-12 shadow-lg rounded-lg overflow-hidden border border-gray-200" style={{ minHeight: '48px' }}>
             {/* Listing Type Dropdown */}
             <div className="w-48 flex items-stretch">
