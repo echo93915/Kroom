@@ -1,15 +1,24 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Home, Users } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
 } from "use-places-autocomplete";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const Hero = () => {
   const router = useRouter();
+  const [listingType, setListingType] = useState<string>("all");
   const {
     ready,
     value,
@@ -39,7 +48,13 @@ const Hero = () => {
       getGeocode({ address: description }).then((results) => {
         const { lat, lng } = getLatLng(results[0]);
         console.log("📍 Coordinates: ", { lat, lng });
-        router.push(`/search?address=${description}&lat=${lat}&lng=${lng}`);
+        const searchParams = new URLSearchParams({
+          address: description,
+          lat: lat.toString(),
+          lng: lng.toString(),
+          ...(listingType !== "all" && { type: listingType })
+        });
+        router.push(`/search?${searchParams.toString()}`);
       });
     };
 
@@ -72,18 +87,62 @@ const Hero = () => {
       <div className="absolute inset-0 bg-black/50" />
       <div className="relative z-10 text-center">
         <h1 className="text-5xl font-bold">Your dream house is here.</h1>
-        <div className="mt-4 relative max-w-md mx-auto">
-          <Input
-            value={value}
-            onChange={handleInput}
-            disabled={!ready}
-            placeholder="Search..."
-            className="pl-10 h-12 text-black bg-white"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
-          {/* We can use the "status" to decide when to render predictions */}
+        <div className="mt-4 relative max-w-2xl mx-auto">
+          <div className="flex items-stretch h-12 shadow-lg rounded-lg overflow-hidden border border-gray-200" style={{ minHeight: '48px' }}>
+            {/* Listing Type Dropdown */}
+            <div className="w-48 flex items-stretch">
+              <Select value={listingType} onValueChange={setListingType}>
+                <SelectTrigger className="!h-full w-full bg-white text-black border-0 rounded-none focus:ring-0 focus:ring-offset-0 hover:bg-gray-50 transition-colors flex items-center px-3 !py-0 [&>span]:truncate">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <div className="flex items-center gap-2">
+                      <Home className="w-4 h-4" />
+                      All Listings
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="rental">
+                    <div className="flex items-center gap-2">
+                      <Home className="w-4 h-4" />
+                      Rental (월세)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sale">
+                    <div className="flex items-center gap-2">
+                      <Home className="w-4 h-4" />
+                      Sale (매매)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="roomshare">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Room Share
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Separator Line */}
+            <div className="w-px bg-gray-300 self-stretch"></div>
+            
+            {/* Search Input */}
+            <div className="flex-1 relative flex items-stretch">
+              <Input
+                value={value}
+                onChange={handleInput}
+                disabled={!ready}
+                placeholder="Search location..."
+                className="pl-10 pr-3 !py-0 !h-full w-full text-black bg-white border-0 rounded-none focus:ring-0 focus:ring-offset-0 hover:bg-gray-50 transition-colors"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
+            </div>
+          </div>
+          
+          {/* Search Suggestions */}
           {status === "OK" && (
-            <ul className="absolute top-full left-0 right-0 bg-white text-black rounded-b-lg shadow-md text-left">
+            <ul className="absolute top-full left-0 right-0 bg-white text-black rounded-b-lg shadow-lg text-left z-50 ml-48 border-t border-gray-200">
               {renderSuggestions()}
             </ul>
           )}
