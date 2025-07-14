@@ -78,16 +78,17 @@ const Hero = () => {
 
   return (
     <div
-      className="relative h-[50vh] bg-cover bg-center flex items-center justify-center text-white"
+      className="relative h-[50vh] bg-cover flex items-center justify-center text-white"
       style={{
         backgroundImage:
-          "url('https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+          "url('https://sdmntpreastus.oaiusercontent.com/files/00000000-d9d0-61f9-87af-bf397d37fe0d/raw?se=2025-07-14T01%3A33%3A38Z&sp=r&sv=2024-08-04&sr=b&scid=553012f4-d20a-5291-b2d2-d0631ce43bd0&skoid=b0fd38cc-3d33-418f-920e-4798de4acdd1&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T00%3A16%3A42Z&ske=2025-07-15T00%3A16%3A42Z&sks=b&skv=2024-08-04&sig=GJt488MfKGcjYcuMb8Rpe%2Bet6iVba5q0zRy3z7Vtx3U%3D')",
+        backgroundPosition: "center 30%",
       }}
     >
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative z-10 text-center">
-        <h1 className="text-5xl font-bold">Your dream house is here.</h1>
-        <div className="mt-4 relative max-w-2xl mx-auto">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 md:px-6 flex flex-col justify-center h-full">
+        <h1 className="text-5xl font-bold text-left text-white mb-4">유학생들의 내 집 마련하기</h1>
+        <div className="mt-4 relative">
           <div className="flex items-stretch h-12 shadow-lg rounded-lg overflow-hidden border border-gray-200" style={{ minHeight: '48px' }}>
             {/* Listing Type Dropdown */}
             <div className="w-48 flex items-stretch">
@@ -117,7 +118,7 @@ const Hero = () => {
                   <SelectItem value="roomshare">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      Room Share
+                      Room Share (룸메)
                     </div>
                   </SelectItem>
                 </SelectContent>
