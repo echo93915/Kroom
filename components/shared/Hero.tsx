@@ -96,7 +96,7 @@ const Hero = () => {
 
               <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 flex flex-col justify-center h-full pt-16">
                   <h1 className={`text-5xl font-bold text-left text-white mb-4 ${inter.className} leading-tight`}>
-            <div>Study Abroad</div>
+            <div>International</div>
             <div>Housing <span className="text-blue-400">Kroom</span></div>
           </h1>
           <div className="mt-2 relative w-[600px]">
@@ -117,19 +117,19 @@ const Hero = () => {
                   <SelectItem value="rental">
                     <div className="flex items-center gap-2">
                       <Home className="w-4 h-4" />
-                      Rental (월세)
+                      Rental
                     </div>
                   </SelectItem>
                   <SelectItem value="sale">
                     <div className="flex items-center gap-2">
                       <Home className="w-4 h-4" />
-                      Sale (매매)
+                      Sale
                     </div>
                   </SelectItem>
                   <SelectItem value="roomshare">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      Room Share (룸메)
+                      Find Roommate
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -145,7 +145,7 @@ const Hero = () => {
                 value={value}
                 onChange={handleInput}
                 disabled={!ready}
-                placeholder="Search location..."
+                placeholder="Search location or University"
                 className="pl-10 pr-3 !py-0 !h-full w-full text-black bg-white border-0 rounded-none focus:ring-0 focus:ring-offset-0 hover:bg-gray-50 transition-colors"
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
