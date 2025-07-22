@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import AuthModal from "./AuthModal";
@@ -20,6 +21,7 @@ import { User as UserIcon, LogOut, Settings } from "lucide-react";
 export function Header() {
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
@@ -39,6 +41,22 @@ export function Header() {
     };
   }, []);
 
+  const handleAdvertiseClick = () => {
+    if (user) {
+      router.push("/advertise");
+    } else {
+      setAuthModalOpen(true);
+    }
+  };
+
+  const handleRecommendClick = () => {
+    if (user) {
+      router.push("/recommend");
+    } else {
+      setAuthModalOpen(true);
+    }
+  };
+
   return (
     <>
       <header className="flex h-20 items-center justify-between bg-background px-4 md:px-6">
@@ -46,11 +64,11 @@ export function Header() {
           Kroom
         </Link>
         <div className="flex items-center space-x-4">
-          <Button variant="destructive" asChild>
-            <Link href="/advertise">Advertise</Link>
+          <Button variant="destructive" onClick={handleAdvertiseClick}>
+            Advertise
           </Button>
-          <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-50" asChild>
-            <Link href="/recommend">Recommend</Link>
+          <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-50" onClick={handleRecommendClick}>
+            Recommend
           </Button>
           {user ? (
             <DropdownMenu>

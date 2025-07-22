@@ -35,7 +35,8 @@ import {
   Train,
   Clock,
   Users,
-  Globe
+  Globe,
+  Key
 } from "lucide-react";
 
 export default function AdvertisePage() {
@@ -111,18 +112,19 @@ export default function AdvertisePage() {
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Listing</h1>
-            <p className="text-gray-600">Connect with Korean international students looking for housing</p>
+            <p className="text-gray-600">Connect with international students looking for housing</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Listing Type Selection */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-gray-900">Listing Type</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { value: "rental", label: "Rental (월세)", icon: Home },
-                  { value: "sale", label: "Sale (매매)", icon: Home },
-                  { value: "roomshare", label: "Room Share", icon: Users }
+                  { value: "rental", label: "Rental", icon: Home },
+                  { value: "sale", label: "Sale", icon: Home },
+                  { value: "roomshare", label: "Find Roommates", icon: Users },
+                  { value: "sublease", label: "Sublease", icon: Key }
                 ].map((type) => (
                   <button
                     key={type.value}
@@ -208,7 +210,7 @@ export default function AdvertisePage() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                                      placeholder="Describe your property, neighborhood, and what makes it special for Korean international students in the US..."
+                                      placeholder="Describe your property, neighborhood, and what makes it special for international students in the US..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={4}
                 />
@@ -384,6 +386,7 @@ export default function AdvertisePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="1-month">1 Month</SelectItem>
+                      <SelectItem value="2-months">2 Months</SelectItem>
                       <SelectItem value="3-months">3 Months</SelectItem>
                       <SelectItem value="6-months">6 Months</SelectItem>
                       <SelectItem value="1-year">1 Year</SelectItem>

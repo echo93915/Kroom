@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Search, Home, Users } from "lucide-react";
+import { Search, Home, Users, Key } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -130,6 +130,12 @@ const Hero = () => {
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
                       Find Roommate
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sublet">
+                    <div className="flex items-center gap-2">
+                      <Key className="w-4 h-4" />
+                      Sublet
                     </div>
                   </SelectItem>
                 </SelectContent>

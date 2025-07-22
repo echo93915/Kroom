@@ -7,21 +7,39 @@ import {
 } from "../ui/dropdown-menu";
 import { ChevronDown, ListFilter, Map } from "lucide-react";
 
-const FilterBar = () => {
+type FilterType = "rental" | "roomshare" | "sublet" | "sale";
+
+interface FilterBarProps {
+  activeFilters: FilterType[];
+  onFilterToggle: (filter: FilterType) => void;
+}
+
+const FilterBar = ({ activeFilters, onFilterToggle }: FilterBarProps) => {
+  const filterButtons = [
+    { value: "rental" as FilterType, label: "Rental" },
+    { value: "roomshare" as FilterType, label: "Find Roommate" },
+    { value: "sublet" as FilterType, label: "Sublease" },
+    { value: "sale" as FilterType, label: "Sale" }
+  ];
+
   return (
     <div className="flex items-center justify-between mt-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" className="bg-green-100 text-green-600">
-          Buy
-        </Button>
-        <Button variant="ghost">Rent</Button>
-        <Button variant="ghost">Sell</Button>
-        <Button
-          variant="ghost"
-          className="bg-green-100 text-green-600 rounded-full"
-        >
-          House <span className="ml-2 text-red-500">X</span>
-        </Button>
+        {filterButtons.map((filter) => (
+          <Button
+            key={filter.value}
+            variant="ghost"
+            className={
+              activeFilters.includes(filter.value)
+                ? "bg-blue-100 text-blue-600 hover:bg-blue-200 border border-blue-300"
+                : "hover:bg-gray-100 border border-gray-200"
+            }
+            onClick={() => onFilterToggle(filter.value)}
+          >
+            {filter.label}
+          </Button>
+        ))}
+        <div className="w-px h-6 bg-gray-300 mx-2" />
         <FilterDropdown title="Rooms" />
         <FilterDropdown title="Price" />
         <FilterDropdown title="Keywords" />
