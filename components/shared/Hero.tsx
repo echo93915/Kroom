@@ -36,7 +36,10 @@ const Hero = () => {
     clearSuggestions,
   } = usePlacesAutocomplete({
     requestOptions: {
-      /* Define search scope here */
+      // Restrict to English-speaking countries and set language to English
+      componentRestrictions: { country: ["us", "ca", "gb", "au"] },
+      language: "en",
+      region: "us"
     },
     debounce: 300,
   });
@@ -96,8 +99,8 @@ const Hero = () => {
 
               <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 flex flex-col justify-center h-full pt-16">
                   <h1 className={`text-5xl font-bold text-left text-white mb-4 ${inter.className} leading-tight`}>
-            <div>International</div>
-            <div>Housing <span className="text-blue-400">Kroom</span></div>
+            <div>Student Housing</div>
+            <div><span className="text-blue-400">Kroom</span></div>
           </h1>
           <div className="mt-2 relative w-[600px]">
           <div className="flex items-stretch h-12 shadow-lg rounded-lg overflow-hidden border border-gray-200" style={{ minHeight: '48px' }}>
