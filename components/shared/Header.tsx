@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User as UserIcon, LogOut, Settings } from "lucide-react";
+import { User as UserIcon, LogOut, Settings, Heart } from "lucide-react";
 
 export function Header() {
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
@@ -49,9 +49,9 @@ export function Header() {
     }
   };
 
-  const handleRecommendClick = () => {
+  const handleSavedClick = () => {
     if (user) {
-      router.push("/recommend");
+      router.push("/saved");
     } else {
       setAuthModalOpen(true);
     }
@@ -67,8 +67,9 @@ export function Header() {
           <Button variant="destructive" onClick={handleAdvertiseClick}>
             Advertise
           </Button>
-          <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-50" onClick={handleRecommendClick}>
-            Recommend
+          <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50" onClick={handleSavedClick}>
+            <Heart className="w-4 h-4 mr-2 fill-red-500" />
+            Saved
           </Button>
           {user ? (
             <DropdownMenu>

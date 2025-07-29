@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import FilterBar from "@/components/shared/FilterBar";
 import PropertyCard, { type Tag } from "@/components/shared/PropertyCard";
@@ -21,6 +22,7 @@ const listingTypeConfig = {
 const listingTypeOrder: ListingType[] = ["rental", "roomshare", "sublet", "sale"];
 
 interface Property {
+  id: string; // Add unique identifier
   image: string;
   price: string;
   title: string;
@@ -35,16 +37,19 @@ interface Property {
 
 const SearchPage = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const address = searchParams.get("address");
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
   
   // Filter state - initially all filters are active
   const [activeFilters, setActiveFilters] = useState<FilterType[]>(["rental", "roomshare", "sublet", "sale"]);
+  const [savedProperties, setSavedProperties] = useState<string[]>([]);
 
   const properties: Property[] = [
     // Rental properties
     {
+      id: "rental-ucla-studio-001",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$2,500/month",
       title: "Modern Studio Apartment",
@@ -57,6 +62,7 @@ const SearchPage = () => {
       listingType: "rental"
     },
     {
+      id: "rental-westwood-2br-002",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$3,200/month",
       title: "2BR Apartment Near University",
@@ -70,6 +76,7 @@ const SearchPage = () => {
     
     // Roommate properties
     {
+      id: "roommate-berkeley-house-003",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$800/month",
       title: "Roommate Wanted - Shared House",
@@ -82,6 +89,7 @@ const SearchPage = () => {
       listingType: "roomshare"
     },
     {
+      id: "roommate-harvard-female-004",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$1,100/month",
       title: "Female Roommate Needed",
@@ -95,6 +103,7 @@ const SearchPage = () => {
 
     // Sublet properties
     {
+      id: "sublet-stanford-summer-005",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$1,800/month",
       title: "Summer Sublet - Furnished Studio",
@@ -106,6 +115,7 @@ const SearchPage = () => {
       listingType: "sublet"
     },
     {
+      id: "sublet-umich-spring-006",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$1,500/month",
       title: "Spring Semester Sublet",
@@ -119,6 +129,7 @@ const SearchPage = () => {
 
     // Sale properties
     {
+      id: "sale-seattle-condo-007",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$989,000",
       title: "2BR Condo for Sale",
@@ -131,6 +142,7 @@ const SearchPage = () => {
       listingType: "sale"
     },
     {
+      id: "sale-boston-townhouse-008",
       image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       price: "$1,250,000",
       title: "3BR Townhouse",
@@ -171,6 +183,23 @@ const SearchPage = () => {
         return [...prev, filter];
       }
     });
+  };
+
+  const handlePropertyClick = (propertyId: string) => {
+    router.push(`/property/${propertyId}`);
+  };
+
+  const handleHeartClick = (propertyId: string) => {
+    setSavedProperties(prev => {
+      if (prev.includes(propertyId)) {
+        // Remove from saved
+        return prev.filter(id => id !== propertyId);
+      } else {
+        // Add to saved
+        return [...prev, propertyId];
+      }
+    });
+    // In a real app, this would also update the backend/database
   };
 
   // Generate filter status text
@@ -224,9 +253,10 @@ const SearchPage = () => {
                     
                     {/* Properties Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {typeProperties.map((property, index) => (
+                      {typeProperties.map((property) => (
                         <PropertyCard 
-                          key={`${type}-${index}`} 
+                          key={property.id}
+                          id={property.id}
                           image={property.image}
                           price={property.price}
                           title={property.title}
@@ -236,6 +266,8 @@ const SearchPage = () => {
                           baths={property.baths}
                           area={property.area}
                           tag={property.tag}
+                          onClick={handlePropertyClick}
+                          onHeartClick={handleHeartClick}
                         />
                       ))}
                     </div>

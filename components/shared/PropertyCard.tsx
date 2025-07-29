@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 export type Tag = "NEW" | "SALE" | "RECOMMENDED";
 
 interface PropertyCardProps {
+  id: string; // Add unique identifier
   image: string;
   price: string;
   title: string;
@@ -13,6 +14,8 @@ interface PropertyCardProps {
   baths: number;
   area: number;
   tag?: Tag;
+  onClick?: (id: string) => void; // Optional click handler
+  onHeartClick?: (id: string) => void; // Optional heart click handler
 }
 
 const tagStyles: { [key in Tag]: string } = {
@@ -22,6 +25,7 @@ const tagStyles: { [key in Tag]: string } = {
 };
 
 const PropertyCard = ({
+  id,
   image,
   price,
   title,
@@ -31,9 +35,27 @@ const PropertyCard = ({
   baths,
   area,
   tag,
+  onClick,
+  onHeartClick,
 }: PropertyCardProps) => {
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(id);
+    }
+  };
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when heart is clicked
+    if (onHeartClick) {
+      onHeartClick(id);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div 
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200"
+      onClick={handleCardClick}
+    >
       <div className="relative">
         <img src={image} alt={title} className="w-full h-48 object-cover" />
         {tag && (
@@ -46,9 +68,10 @@ const PropertyCard = ({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 bg-white/80 rounded-full"
+          className="absolute top-2 right-2 bg-white/80 rounded-full hover:bg-white/90"
+          onClick={handleHeartClick}
         >
-          <Heart className="h-5 w-5 text-gray-500" />
+          <Heart className="h-5 w-5 text-gray-500 hover:text-red-500 transition-colors" />
         </Button>
       </div>
       <div className="p-4">

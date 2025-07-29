@@ -103,7 +103,7 @@ const Hero = () => {
             <div><span className="text-blue-400">Kroom</span></div>
           </h1>
           <div className="mt-2 relative w-[600px]">
-          <div className="flex items-stretch h-12 shadow-lg rounded-lg overflow-hidden border border-gray-200" style={{ minHeight: '48px' }}>
+          <div className="flex items-stretch h-16 shadow-lg rounded-lg overflow-hidden border border-gray-200" style={{ minHeight: '64px' }}>
             {/* Listing Type Dropdown */}
             <div className="w-48 flex items-stretch">
               <Select value={listingType} onValueChange={setListingType}>
