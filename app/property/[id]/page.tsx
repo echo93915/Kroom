@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
 import { 
   ArrowLeft, 
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Heart, 
   Share2, 
   Phone, 
@@ -61,6 +64,15 @@ const fetchPropertyById = async (id: string) => {
     }
 
     // Transform database property to the format expected by the component
+    console.log('🏠 Transforming property data:', {
+      id: data.id,
+      title: data.title,
+      contactsLength: data.contacts?.length || 0,
+      universitiesLength: data.universities?.length || 0,
+      imagesLength: data.images?.length || 0,
+      amenitiesLength: data.amenities?.length || 0
+    });
+    
     return {
       id: data.id,
       title: data.title,
@@ -78,8 +90,12 @@ const fetchPropertyById = async (id: string) => {
         .sort((a: any, b: any) => a.display_order - b.display_order)
         .map((img: any) => img.image_url),
       description: data.description,
-      amenities: (data.amenities || []).map((a: any) => a.amenity.name.toLowerCase().replace(/\s+/g, '')),
-      studentFeatures: [], // TODO: Map from amenities if needed
+      amenities: (data.amenities || [])
+        .filter((a: any) => a.amenity && a.amenity.name && a.amenity.category !== 'student-specific')
+        .map((a: any) => a.amenity.name.toLowerCase().replace(/\s+/g, '')),
+      studentFeatures: (data.amenities || [])
+        .filter((a: any) => a.amenity && a.amenity.name && a.amenity.category === 'student-specific')
+        .map((a: any) => a.amenity.name.toLowerCase().replace(/\s+/g, '')),
       pricing: {
         monthlyRent: data.monthly_rent_cents ? data.monthly_rent_cents / 100 : 0,
         deposit: data.deposit_cents ? data.deposit_cents / 100 : 0,
@@ -91,14 +107,14 @@ const fetchPropertyById = async (id: string) => {
         minimumStay: `${data.minimum_stay_months || 12} months`,
         maximumOccupants: data.maximum_occupants || 1
       },
-      contact: data.contacts?.[0] ? {
+      contact: data.contacts && data.contacts.length > 0 ? {
         name: data.contacts[0].name,
         phone: data.contacts[0].phone,
         email: data.contacts[0].email,
         languages: data.contacts[0].languages || [],
         preferredContact: data.contacts[0].preferred_contact_method
       } : null,
-      university: data.universities?.[0] ? {
+      university: data.universities && data.universities.length > 0 && data.universities[0].university ? {
         name: data.universities[0].university.name,
         distance: `${data.universities[0].distance_miles} miles`,
         walkTime: `${data.universities[0].walk_time_minutes} minutes`,
@@ -825,6 +841,16 @@ const getPropertyById = (id: string) => {
 };
 
 const amenityIcons = {
+  // Database amenity names (after lowercase + remove spaces transformation)
+  wifiincluded: Wifi,
+  parkingavailable: Car,
+  fullkitchen: Utensils,
+  'tv/cable': Tv,
+  airconditioning: Snowflake,
+  laundry: WashingMachine,
+  '24/7security': Shield,
+  fullyfurnished: Home,
+  // Legacy keys for fallback compatibility
   wifi: Wifi,
   parking: Car,
   kitchen: Utensils,
@@ -836,9 +862,19 @@ const amenityIcons = {
 };
 
 const amenityLabels = {
+  // Database amenity names (after lowercase + remove spaces transformation)
+  wifiincluded: "WiFi Included",
+  parkingavailable: "Parking Available", 
+  fullkitchen: "Full Kitchen",
+  'tv/cable': "TV/Cable",
+  airconditioning: "Air Conditioning",
+  laundry: "Laundry",
+  '24/7security': "24/7 Security",
+  fullyfurnished: "Fully Furnished",
+  // Legacy keys for fallback compatibility
   wifi: "WiFi Included",
   parking: "Parking Available",
-  kitchen: "Full Kitchen",
+  kitchen: "Full Kitchen", 
   tv: "TV/Cable",
   aircon: "Air Conditioning",
   washing: "Laundry",
@@ -847,6 +883,13 @@ const amenityLabels = {
 };
 
 const studentFeatureIcons = {
+  // Database student amenity names (after lowercase + remove spaces transformation)
+  nearuniversity: GraduationCap,
+  publictransitaccess: Train,
+  internationalstudentfriendly: Globe,
+  koreanspeakingsupport: MessageSquare,
+  quietstudyarea: Home,
+  // Legacy keys for fallback compatibility
   nearUniversity: GraduationCap,
   publicTransport: Train,
   internationalFriendly: Globe,
@@ -854,6 +897,13 @@ const studentFeatureIcons = {
 };
 
 const studentFeatureLabels = {
+  // Database student amenity names (after lowercase + remove spaces transformation)
+  nearuniversity: "Near University",
+  publictransitaccess: "Public Transit Access", 
+  internationalstudentfriendly: "International Student Friendly",
+  koreanspeakingsupport: "Korean Speaking Support",
+  quietstudyarea: "Quiet Study Area",
+  // Legacy keys for fallback compatibility
   nearUniversity: "Near University",
   publicTransport: "Public Transit Access",
   internationalFriendly: "International Student Friendly",
@@ -868,6 +918,23 @@ export default function PropertyDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Navigation functions for image gallery
+  const nextImage = () => {
+    if (property?.images) {
+      setCurrentImageIndex((prev) => 
+        prev === property.images.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+    if (property?.images) {
+      setCurrentImageIndex((prev) => 
+        prev === 0 ? property.images.length - 1 : prev - 1
+      );
+    }
+  };
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -995,36 +1062,68 @@ export default function PropertyDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Photo Gallery */}
             <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-              <div className="relative h-96">
+              <div className="relative aspect-square group">
                 <img
                   src={property.images[currentImageIndex]}
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
+                
+                {/* Navigation Arrows */}
+                {property.images.length > 1 && (
+                  <>
+                    {/* Previous Image Button */}
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    
+                    {/* Next Image Button */}
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+                
+                {/* Image Counter */}
+                <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                  {currentImageIndex + 1} / {property.images.length}
+                </div>
+                
+                {/* Dot Indicators */}
                 <div className="absolute bottom-4 left-4 flex gap-2">
                   {property.images.map((_: any, index: number) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-3 h-3 rounded-full ${
-                        index === currentImageIndex ? "bg-white" : "bg-white/50"
+                      className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+                        index === currentImageIndex ? "bg-white" : "bg-white/50 hover:bg-white/75"
                       }`}
                     />
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-2 p-4">
-                {property.images.slice(0, 4).map((image: string, index: number) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`aspect-square rounded-lg overflow-hidden border-2 ${
-                      index === currentImageIndex ? "border-blue-500" : "border-gray-200"
-                    }`}
-                  >
-                    <img src={image} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
+              <div className="overflow-x-auto p-4">
+                <div className="flex gap-2 min-w-max">
+                  {property.images.map((image: string, index: number) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`aspect-square w-20 h-20 rounded-lg overflow-hidden border-2 flex-shrink-0 ${
+                        index === currentImageIndex ? "border-blue-500" : "border-gray-200"
+                      }`}
+                    >
+                      <img src={image} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1064,10 +1163,18 @@ export default function PropertyDetailPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {property.amenities.map((amenity: string) => {
                   const Icon = amenityIcons[amenity as keyof typeof amenityIcons];
+                  const label = amenityLabels[amenity as keyof typeof amenityLabels] || amenity;
+                  
+                  // Skip amenities with undefined icons to prevent render errors
+                  if (!Icon) {
+                    console.warn(`Missing icon for amenity: "${amenity}"`);
+                    return null;
+                  }
+                  
                   return (
                     <div key={amenity} className="flex items-center gap-3 p-3 border rounded-lg">
                       <Icon className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm">{amenityLabels[amenity as keyof typeof amenityLabels]}</span>
+                      <span className="text-sm">{label}</span>
                     </div>
                   );
                 })}
@@ -1080,10 +1187,18 @@ export default function PropertyDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {property.studentFeatures.map((feature: string) => {
                   const Icon = studentFeatureIcons[feature as keyof typeof studentFeatureIcons];
+                  const label = studentFeatureLabels[feature as keyof typeof studentFeatureLabels] || feature;
+                  
+                  // Skip features with undefined icons to prevent render errors
+                  if (!Icon) {
+                    console.warn(`Missing icon for student feature: "${feature}"`);
+                    return null;
+                  }
+                  
                   return (
                     <div key={feature} className="flex items-center gap-3 p-3 border rounded-lg">
                       <Icon className="w-5 h-5 text-green-600" />
-                      <span className="text-sm">{studentFeatureLabels[feature as keyof typeof studentFeatureLabels]}</span>
+                      <span className="text-sm">{label}</span>
                     </div>
                   );
                 })}
@@ -1175,62 +1290,73 @@ export default function PropertyDetailPage() {
               </div>
 
               {/* University Info */}
-              <div className="mb-6">
-                <h3 className="font-semibold mb-3">University</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-blue-600" />
-                    <span>{property.university.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Walking Distance</span>
-                    <span>{property.university.distance}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Walk Time</span>
-                    <span>{property.university.walkTime}</span>
+              {property.university && (
+                <div className="mb-6">
+                  <h3 className="font-semibold mb-3">University</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-blue-600" />
+                      <span>{property.university.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Walking Distance</span>
+                      <span>{property.university.distance}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Walk Time</span>
+                      <span>{property.university.walkTime}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Contact */}
-              <div className="space-y-3">
-                <h3 className="font-semibold">
-                  {property.listingType === "sale" ? "Contact Agent" : "Contact"} {property.contact.name}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Languages: {property.contact.languages.join(", ")}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Preferred: {property.contact.preferredContact}
-                </p>
-                
-                <div className="space-y-2">
-                  <Button
-                    className="w-full"
-                    onClick={() => handleContact('message')}
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    {property.listingType === "sale" ? "Request Info" : "Send Message"}
-                  </Button>
-                  <div className="grid grid-cols-2 gap-2">
+              {property.contact ? (
+                <div className="space-y-3">
+                  <h3 className="font-semibold">
+                    {property.listingType === "sale" ? "Contact Agent" : "Contact"} {property.contact.name}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Languages: {property.contact.languages.join(", ")}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Preferred: {property.contact.preferredContact}
+                  </p>
+                  
+                  <div className="space-y-2">
                     <Button
-                      variant="outline"
-                      onClick={() => handleContact('phone')}
+                      className="w-full"
+                      onClick={() => handleContact('message')}
                     >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      {property.listingType === "sale" ? "Request Info" : "Send Message"}
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleContact('email')}
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Email
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleContact('phone')}
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleContact('email')}
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Email
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <h3 className="font-semibold">Contact Information</h3>
+                  <p className="text-sm text-gray-600">
+                    Contact information not available for this property.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
