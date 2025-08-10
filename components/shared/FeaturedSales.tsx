@@ -21,6 +21,7 @@ const FeaturedSales = () => {
       baths: 1,
       area: 650,
       tag: "SALE" as const,
+      is_demo: true,
     },
     {
       id: "featured-sale-stanford-002",
@@ -32,6 +33,7 @@ const FeaturedSales = () => {
       beds: 2,
       baths: 2,
       area: 1100,
+      is_demo: true,
     },
     {
       id: "featured-sale-berkeley-003",
@@ -44,6 +46,7 @@ const FeaturedSales = () => {
       baths: 1,
       area: 480,
       tag: "NEW" as const,
+      is_demo: true,
     },
     {
       id: "featured-sale-seattle-004",
@@ -55,6 +58,7 @@ const FeaturedSales = () => {
       beds: 2,
       baths: 1,
       area: 850,
+      is_demo: true,
     },
   ];
 

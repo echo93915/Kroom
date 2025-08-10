@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { createClient } from "@/lib/supabase/client";
 import { 
   ArrowLeft, 
   Heart, 
@@ -31,7 +32,86 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-// Mock property data - in real app, this would come from API/database
+// Fetch property data from database
+const fetchPropertyById = async (id: string) => {
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('properties')
+      .select(`
+        *,
+        images:property_images(id, image_url, alt_text, display_order, is_primary),
+        amenities:property_amenities(amenity:amenities(id, name, icon, category)),
+        contacts:property_contacts(id, name, phone, email, languages, preferred_contact_method, is_primary),
+        universities:property_universities(
+          id, distance_miles, walk_time_minutes, transit_time_minutes, transportation_methods,
+          university:universities(id, name, short_name, city, state)
+        )
+      `)
+      .eq('id', id)
+      .eq('status', 'active')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    // Transform database property to the format expected by the component
+    return {
+      id: data.id,
+      title: data.title,
+      price: data.listing_type === 'sale' 
+        ? `$${(data.sale_price_cents ? data.sale_price_cents / 100 : 0).toLocaleString()}`
+        : `$${(data.monthly_rent_cents ? data.monthly_rent_cents / 100 : 0).toLocaleString()}/month`,
+      location: `${data.city}, ${data.state}`,
+      fullAddress: data.address,
+      date: data.available_from ? `Available ${new Date(data.available_from).toLocaleDateString()}` : 'Available Now',
+      beds: data.beds || 0,
+      baths: data.baths || 0,
+      area: data.area_sqft || 0,
+      listingType: data.listing_type,
+      images: (data.images || [])
+        .sort((a: any, b: any) => a.display_order - b.display_order)
+        .map((img: any) => img.image_url),
+      description: data.description,
+      amenities: (data.amenities || []).map((a: any) => a.amenity.name.toLowerCase().replace(/\s+/g, '')),
+      studentFeatures: [], // TODO: Map from amenities if needed
+      pricing: {
+        monthlyRent: data.monthly_rent_cents ? data.monthly_rent_cents / 100 : 0,
+        deposit: data.deposit_cents ? data.deposit_cents / 100 : 0,
+        utilities: data.utilities_cents ? data.utilities_cents / 100 : 0,
+        parking: data.parking_cents ? data.parking_cents / 100 : 0
+      },
+      availability: {
+        availableFrom: data.available_from,
+        minimumStay: `${data.minimum_stay_months || 12} months`,
+        maximumOccupants: data.maximum_occupants || 1
+      },
+      contact: data.contacts?.[0] ? {
+        name: data.contacts[0].name,
+        phone: data.contacts[0].phone,
+        email: data.contacts[0].email,
+        languages: data.contacts[0].languages || [],
+        preferredContact: data.contacts[0].preferred_contact_method
+      } : null,
+      university: data.universities?.[0] ? {
+        name: data.universities[0].university.name,
+        distance: `${data.universities[0].distance_miles} miles`,
+        walkTime: `${data.universities[0].walk_time_minutes} minutes`,
+        transitTime: `${data.universities[0].transit_time_minutes} minutes`
+      } : null
+    };
+  } catch (error) {
+    console.error('Error fetching property:', error);
+    return null;
+  }
+};
+
+// Fallback hardcoded properties for non-database IDs
 const getPropertyById = (id: string) => {
   const properties = {
     // Featured Rentals
@@ -413,51 +493,6 @@ const getPropertyById = (id: string) => {
     },
 
     // Search Page Properties
-    "rental-ucla-studio-001": {
-      id: "rental-ucla-studio-001",
-      title: "Modern Studio Apartment",
-      price: "$2,500/month",
-      location: "Near USC Campus, Los Angeles, CA",
-      fullAddress: "123 University Ave, Los Angeles, CA 90007",
-      date: "Available December 2024",
-      beds: 1,
-      baths: 1,
-      area: 550,
-      listingType: "rental",
-      images: [
-        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop"
-      ],
-      description: "Beautiful modern studio apartment perfect for international students. Located just 2 blocks from USC campus with easy access to public transportation. The unit features high-end finishes, in-unit laundry, and a fully equipped kitchen. Building amenities include 24/7 security, fitness center, and study lounges.",
-      amenities: ["wifi", "parking", "kitchen", "tv", "aircon", "washing", "security", "furnished"],
-      studentFeatures: ["nearUniversity", "publicTransport", "internationalFriendly", "koreanSupport"],
-      pricing: {
-        monthlyRent: 2500,
-        deposit: 2500,
-        utilities: 150,
-        parking: 100
-      },
-      availability: {
-        availableFrom: "2024-12-01",
-        minimumStay: "12 months",
-        maximumOccupants: 1
-      },
-      contact: {
-        name: "Sarah Kim",
-        phone: "(323) 555-0123",
-        email: "sarah.kim@example.com",
-        languages: ["English", "Korean"],
-        preferredContact: "Text/KakaoTalk"
-      },
-      university: {
-        name: "USC",
-        distance: "2 blocks",
-        walkTime: "5 minutes",
-        transitTime: "N/A"
-      }
-    },
 
     "rental-westwood-2br-002": {
       id: "rental-westwood-2br-002",
@@ -829,22 +864,65 @@ export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [property, setProperty] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    const propertyData = getPropertyById(params.id as string);
-    if (propertyData) {
-      setProperty(propertyData);
-    }
+    const loadProperty = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // First try to fetch from database
+        const propertyData = await fetchPropertyById(params.id as string);
+        
+        if (propertyData) {
+          setProperty(propertyData);
+        } else {
+          // Fallback to hardcoded data for non-database IDs
+          const fallbackData = getPropertyById(params.id as string);
+          if (fallbackData) {
+            setProperty(fallbackData);
+          } else {
+            setError('Property not found');
+          }
+        }
+      } catch (err) {
+        console.error('Error loading property:', err);
+        // Try fallback data on error
+        const fallbackData = getPropertyById(params.id as string);
+        if (fallbackData) {
+          setProperty(fallbackData);
+        } else {
+          setError('Failed to load property');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProperty();
   }, [params.id]);
 
-  if (!property) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading property details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !property) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h1>
-          <p className="text-gray-600 mb-6">The property you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-6">{error || "The property you're looking for doesn't exist."}</p>
           <Button onClick={() => router.push("/search")}>
             Back to Search
           </Button>

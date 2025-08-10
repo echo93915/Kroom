@@ -8,8 +8,8 @@ VALUES (
   ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 ) ON CONFLICT (id) DO NOTHING;
 
--- Enable RLS on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- RLS is already enabled on storage.objects in remote Supabase instances
+-- ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY; -- Not needed for remote
 
 -- Policy to allow authenticated users to upload their own profile pictures
 CREATE POLICY "Users can upload their own profile pictures" ON storage.objects

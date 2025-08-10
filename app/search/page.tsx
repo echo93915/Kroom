@@ -2,11 +2,13 @@
 
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FilterBar from "@/components/shared/FilterBar";
 import PropertyCard, { type Tag } from "@/components/shared/PropertyCard";
 import Map from "@/components/shared/Map";
 import { Home, Users, Key } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { Property as DatabaseProperty } from "@/lib/types/property";
 
 // Define listing types and their order
 type ListingType = "rental" | "roomshare" | "sublet" | "sale";
@@ -33,6 +35,7 @@ interface Property {
   area: number;
   tag?: Tag;
   listingType: ListingType;
+  is_demo?: boolean;
 }
 
 const SearchPage = () => {
@@ -45,115 +48,57 @@ const SearchPage = () => {
   // Filter state - initially all filters are active
   const [activeFilters, setActiveFilters] = useState<FilterType[]>(["rental", "roomshare", "sublet", "sale"]);
   const [savedProperties, setSavedProperties] = useState<string[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const properties: Property[] = [
-    // Rental properties
-    {
-      id: "rental-ucla-studio-001",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$2,500/month",
-      title: "Modern Studio Apartment",
-      location: "Near USC Campus, Los Angeles, CA",
-      date: "Available December 2024",
-      beds: 1,
-      baths: 1,
-      area: 550,
-      tag: "NEW" as Tag,
-      listingType: "rental"
-    },
-    {
-      id: "rental-westwood-2br-002",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$3,200/month",
-      title: "2BR Apartment Near University",
-      location: "Westwood, Los Angeles, CA",
-      date: "Available January 2025",
-      beds: 2,
-      baths: 1,
-      area: 800,
-      listingType: "rental"
-    },
-    
-    // Roommate properties
-    {
-      id: "roommate-berkeley-house-003",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$800/month",
-      title: "Roommate Wanted - Shared House",
-      location: "Berkeley, CA",
-      date: "Available Now",
-      beds: 1,
-      baths: 1,
-      area: 300,
-      tag: "RECOMMENDED" as Tag,
-      listingType: "roomshare"
-    },
-    {
-      id: "roommate-harvard-female-004",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$1,100/month",
-      title: "Female Roommate Needed",
-      location: "Harvard Square, Cambridge, MA",
-      date: "Available February 2025",
-      beds: 1,
-      baths: 1,
-      area: 400,
-      listingType: "roomshare"
-    },
+  // Fetch properties from database
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('properties')
+          .select(`
+            *,
+            images:property_images(id, image_url, alt_text, display_order, is_primary)
+          `)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
 
-    // Sublet properties
-    {
-      id: "sublet-stanford-summer-005",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$1,800/month",
-      title: "Summer Sublet - Furnished Studio",
-      location: "Stanford Area, Palo Alto, CA",
-      date: "May - August 2025",
-      beds: 1,
-      baths: 1,
-      area: 450,
-      listingType: "sublet"
-    },
-    {
-      id: "sublet-umich-spring-006",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$1,500/month",
-      title: "Spring Semester Sublet",
-      location: "Ann Arbor, MI",
-      date: "January - May 2025",
-      beds: 1,
-      baths: 1,
-      area: 600,
-      listingType: "sublet"
-    },
+        if (error) {
+          throw error;
+        }
 
-    // Sale properties
-    {
-      id: "sale-seattle-condo-007",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$989,000",
-      title: "2BR Condo for Sale",
-      location: "Seattle, WA",
-      date: "Listed November 2024",
-      beds: 2,
-      baths: 2,
-      area: 1100,
-      tag: "SALE" as Tag,
-      listingType: "sale"
-    },
-    {
-      id: "sale-boston-townhouse-008",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      price: "$1,250,000",
-      title: "3BR Townhouse",
-      location: "Boston, MA",
-      date: "Listed October 2024",
-      beds: 3,
-      baths: 2,
-      area: 1500,
-      listingType: "sale"
-    }
-  ];
+        // Transform database properties to search page format
+        const transformedProperties: Property[] = (data || []).map((row: any) => ({
+          id: row.id,
+          image: row.images?.[0]?.image_url || '/placeholder-property.jpg',
+          price: row.listing_type === 'sale' 
+            ? `$${(row.sale_price_cents ? row.sale_price_cents / 100 : 0).toLocaleString()}`
+            : `$${(row.monthly_rent_cents ? row.monthly_rent_cents / 100 : 0).toLocaleString()}/month`,
+          title: row.title,
+          location: `${row.address}, ${row.city}, ${row.state}`,
+          date: row.available_from ? `Available ${new Date(row.available_from).toLocaleDateString()}` : 'Available Now',
+          beds: row.beds || 0,
+          baths: row.baths || 0,
+          area: row.area_sqft || 0,
+          tag: row.tag_label as Tag,
+          listingType: row.listing_type as ListingType,
+          is_demo: row.is_demo
+        }));
+
+        setProperties(transformedProperties);
+      } catch (error) {
+        console.error('Failed to fetch properties:', error);
+        // Fallback to empty array on error
+        setProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
 
   // Filter properties based on active filters
   const filteredProperties = properties.filter(property => 
@@ -213,6 +158,23 @@ const SearchPage = () => {
     const filterLabels = activeFilters.map(filter => listingTypeConfig[filter].label);
     return ` • Showing: ${filterLabels.join(", ")}`;
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-8">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div className="h-12 bg-gray-200 rounded mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-8">
