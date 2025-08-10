@@ -64,14 +64,6 @@ const fetchPropertyById = async (id: string) => {
     }
 
     // Transform database property to the format expected by the component
-    console.log('🏠 Transforming property data:', {
-      id: data.id,
-      title: data.title,
-      contactsLength: data.contacts?.length || 0,
-      universitiesLength: data.universities?.length || 0,
-      imagesLength: data.images?.length || 0,
-      amenitiesLength: data.amenities?.length || 0
-    });
     
     return {
       id: data.id,

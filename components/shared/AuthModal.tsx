@@ -100,16 +100,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsLoading(true);
     
     const { data, error } = await signUpWithEmail({ email, password });
-    
-    // Debug logging to see what we're actually getting
-    console.log("Signup response:", { data, error });
-    console.log("Error message:", error?.message);
-    console.log("Data user:", data?.user);
-    console.log("Data session:", data?.session);
-    console.log("User identities:", data?.user?.identities);
 
     if (error) {
-      console.log("Error case");
       if (error.message.includes("User already registered") || 
           error.message.includes("already registered") ||
           error.message.includes("email already exists")) {
@@ -120,27 +112,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } else if (data.user) {
       // Check identities array to determine if this is a new user or existing user
       if (data.user.identities && data.user.identities.length === 0) {
-        console.log("Existing user case - empty identities array");
         // Empty identities array means user already exists (email confirmation disabled)
         setError("An account with this email already exists. Please sign in instead.");
       } else if (data.user.identities && data.user.identities.length > 0) {
-        console.log("New user case - identities array has content");
         // Identities array has content, this is a new user
         if (data.session) {
-          console.log("New user immediately signed in (email confirmation disabled)");
           // Email confirmation is disabled, user is immediately signed in
           onClose();
         } else {
-          console.log("New user needs email confirmation (email confirmation enabled)");
           // Email confirmation is enabled, show confirmation message
           setShowConfirmationMessage(true);
         }
       } else {
-        console.log("Unexpected user response");
         setError("Something went wrong during signup. Please try again.");
       }
     } else {
-      console.log("No user data returned");
       setError("Something went wrong during signup. Please try again.");
     }
     setIsLoading(false);
