@@ -2,6 +2,8 @@
 
 A modern real estate platform built with Next.js and Supabase, designed for property listings, rentals, sales, and roommate matching.
 
+![Kroom Landing Page](LandingPage.png)
+
 ## Features
 
 - **Multi-type Listings** - Support for rentals, sales, roomshares, and sublets
