@@ -12,15 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { FaApple, FaFacebook } from "react-icons/fa";
-import { SiNaver } from "react-icons/si";
-import { Mail } from "lucide-react";
 import GoogleIcon from "./GoogleIcon";
 import {
   signInWithEmail,
   signUpWithEmail,
   signInWithGoogle,
-  signInWithApple,
 } from "@/services/auth";
 
 interface AuthModalProps {
@@ -261,28 +257,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
               <div className="space-y-2">
                 <SocialButton
-                  icon={SiNaver}
-                  text="Continue with Naver"
-                  color="#03C75A"
-                      disabled={isLoading}
-                />
-                <SocialButton
                   icon={GoogleIcon}
                   text="Continue with Google"
                   onClick={signInWithGoogle}
-                      disabled={isLoading}
-                />
-                <SocialButton
-                  icon={FaApple}
-                  text="Continue with Apple"
-                  color="#000000"
-                  onClick={signInWithApple}
-                      disabled={isLoading}
-                />
-                <SocialButton
-                  icon={FaFacebook}
-                  text="Continue with Facebook"
-                  color="#1877F2"
                       disabled={isLoading}
                 />
               </div>

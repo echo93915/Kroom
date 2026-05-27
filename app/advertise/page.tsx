@@ -66,7 +66,7 @@ export default function AdvertisePage() {
     contactPhone: "",
     contactEmail: "",
     preferredContact: "",
-    languageSupport: ""
+    languageSupport: [] as string[]
   });
 
   const [amenities, setAmenities] = useState({
@@ -98,6 +98,30 @@ export default function AdvertisePage() {
 
   const handleStudentFeatureChange = (feature: string, checked: boolean) => {
     setStudentFeatures(prev => ({ ...prev, [feature]: checked }));
+  };
+
+  const handleLanguageToggle = (lang: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      languageSupport: checked
+        ? [...prev.languageSupport, lang]
+        : prev.languageSupport.filter(l => l !== lang),
+    }));
+  };
+
+  const handlePhotoChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPropertyPhotos(prev => {
+      const updated = [...prev];
+      updated[index] = url;
+      return updated;
+    });
+  };
+
+  const handlePhotoRemove = (index: number) => {
+    setPropertyPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -166,6 +190,7 @@ export default function AdvertisePage() {
                           />
                           <button
                             type="button"
+                            onClick={() => handlePhotoRemove(index)}
                             className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
                           >
                             <X className="w-4 h-4" />
@@ -179,6 +204,7 @@ export default function AdvertisePage() {
                             type="file"
                             accept="image/*"
                             className="hidden"
+                            onChange={(e) => handlePhotoChange(index, e)}
                           />
                         </label>
                       )}
@@ -536,19 +562,27 @@ export default function AdvertisePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="languageSupport">Language Support</Label>
-                <Select value={formData.languageSupport} onValueChange={(value) => handleInputChange("languageSupport", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select languages you can communicate in" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="korean-only">Korean Only</SelectItem>
-                    <SelectItem value="korean-english">Korean & English</SelectItem>
-                    <SelectItem value="korean-chinese">Korean & Chinese</SelectItem>
-                    <SelectItem value="korean-japanese">Korean & Japanese</SelectItem>
-                    <SelectItem value="multilingual">Multiple Languages</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Language Support</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { key: "korean", label: "Korean (한국어)" },
+                    { key: "english", label: "English" },
+                    { key: "chinese", label: "Chinese (中文)" },
+                    { key: "japanese", label: "Japanese (日本語)" },
+                    { key: "spanish", label: "Spanish (Español)" },
+                    { key: "other", label: "Other" },
+                  ].map((lang) => (
+                    <label key={lang.key} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.languageSupport.includes(lang.key)}
+                        onChange={(e) => handleLanguageToggle(lang.key, e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm font-medium">{lang.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 

@@ -5,23 +5,22 @@ import { GoogleMap } from "@react-google-maps/api";
 interface MapProps {
   lat: number;
   lng: number;
+  zoom?: number;
+  height?: string;
 }
 
-const Map = ({ lat, lng }: MapProps) => {
+const Map = ({ lat, lng, zoom = 12, height = "calc(100vh - 120px)" }: MapProps) => {
   const mapContainerStyle = {
     width: "100%",
-    height: "calc(100vh - 120px)",
+    height,
   };
 
-  const center = {
-    lat,
-    lng,
-  };
+  const center = { lat, lng };
 
   return (
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
-      zoom={12}
+      zoom={zoom}
       center={center}
     />
   );

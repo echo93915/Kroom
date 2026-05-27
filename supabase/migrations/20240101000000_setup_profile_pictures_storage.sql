@@ -11,22 +11,25 @@ VALUES (
 -- RLS is already enabled on storage.objects in remote Supabase instances
 -- ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY; -- Not needed for remote
 
--- Policy to allow authenticated users to upload their own profile pictures
+DROP POLICY IF EXISTS "Users can upload their own profile pictures" ON storage.objects;
+DROP POLICY IF EXISTS "Users can view all profile pictures" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own profile pictures" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own profile pictures" ON storage.objects;
+DROP POLICY IF EXISTS "Public can view profile pictures" ON storage.objects;
+
 CREATE POLICY "Users can upload their own profile pictures" ON storage.objects
   FOR INSERT WITH CHECK (
-    bucket_id = 'profile-pictures' 
+    bucket_id = 'profile-pictures'
     AND auth.role() = 'authenticated'
     AND (storage.foldername(name))[1] = 'profile-pictures'
   );
 
--- Policy to allow authenticated users to view all profile pictures
 CREATE POLICY "Users can view all profile pictures" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'profile-pictures'
     AND auth.role() = 'authenticated'
   );
 
--- Policy to allow users to update their own profile pictures
 CREATE POLICY "Users can update their own profile pictures" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'profile-pictures'
@@ -34,7 +37,6 @@ CREATE POLICY "Users can update their own profile pictures" ON storage.objects
     AND (storage.foldername(name))[1] = 'profile-pictures'
   );
 
--- Policy to allow users to delete their own profile pictures
 CREATE POLICY "Users can delete their own profile pictures" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'profile-pictures'
@@ -42,7 +44,6 @@ CREATE POLICY "Users can delete their own profile pictures" ON storage.objects
     AND (storage.foldername(name))[1] = 'profile-pictures'
   );
 
--- Policy to allow public access to profile pictures (for viewing)
 CREATE POLICY "Public can view profile pictures" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'profile-pictures'
